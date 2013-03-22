@@ -1,0 +1,28 @@
+{
+  "name": "piping-browser",
+  "version": "0.1.0",
+  "description": "Keep your code piping hot! Rebuild your client side code on change without binaries",
+  "main": "lib/piping.js",
+  "dependencies": {
+    "chokidar": "0.5.x",
+    "colors": "0.6.x",
+    "browserify": "2.7.x",
+    "convert-source-map": "0.2.x",
+    "through": "2.2.x"
+  },
+  "devDependencies": {
+    "coffee-script": "~1.6.0"
+  },
+  "repository": "git://github.com/mdlawson/piping-browser.git",
+  "keywords": [
+    "live",
+    "code",
+    "reload",
+    "hot",
+    "browserify",
+    "browser",
+    "watch"
+  ],
+  "author": "Michael Lawson",
+  "license": "MIT"
+}
