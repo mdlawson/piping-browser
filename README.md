@@ -33,7 +33,7 @@ require("piping-browser")("./client/scripts/main.js","./public/application.js")
 piping-browser plays nice with piping. To use it, ensure piping-browser is required when piping returns false:
 
 ```javascript
-if(require("piping")()){
+if(!require("piping")()){
   require("piping-browser")("./client/scripts/main.js","./public/application.js")
   return
 }
