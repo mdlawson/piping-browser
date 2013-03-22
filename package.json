@@ -1,6 +1,6 @@
 {
   "name": "piping-browser",
-  "version": "0.2.0",
+  "version": "0.1.5",
   "description": "Keep your code piping hot! Rebuild your client side code on change without binaries",
   "main": "lib/piping.js",
   "dependencies": {
