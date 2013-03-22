@@ -8,7 +8,8 @@
     "colors": "0.6.x",
     "browserify": "2.7.x",
     "convert-source-map": "0.2.x",
-    "through": "2.2.x"
+    "through": "2.2.x",
+    "uglify-js": "2.2.x"
   },
   "devDependencies": {
     "coffee-script": "~1.6.0"
