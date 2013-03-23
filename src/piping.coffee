@@ -18,6 +18,13 @@ options =
         compiled = coffee.compile data, {sourceMap: true, generatedFile: true, inline: true}
         comment = convertSourceMap.fromJSON(compiled.v3SourceMap).setProperty("sources", [ file ]).toComment()
         return compiled.js + "\n" + comment
+    "jade": (file,data) ->
+        jade = require "jade"
+        compiled = jade.compile data,
+          compileDebug: no
+          client: yes
+          filename: file
+        return "module.exports=#{compiled}"
 
 
 module.exports = (ops,out) ->
