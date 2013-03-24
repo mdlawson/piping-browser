@@ -37,6 +37,8 @@ module.exports = (ops,out) ->
       options.build[key] = value for key,value of ops.build
 
   basedir = path.dirname module.parent.filename
+  main = path.resolve(basedir,options.main)
+  out = path.resolve(basedir,options.out)
   
   watcher = chokidar.watch path.resolve(basedir,options.main),
     ignored: options.ignore
@@ -45,25 +47,28 @@ module.exports = (ops,out) ->
 
   bundle = (i,o) ->
     start = Date.now()
-    browserify().transform((file) ->
-        watcher.add file
-        for ext,func of options.build
-          if RegExp("\.#{ext}$").test file
-            data = ""
-            write = (buf) -> data += buf
-            end = -> 
-              @queue func(file,data)
-              @queue null
-            return through write, end
-        return through()
-      ).require(path.resolve(basedir,i),{entry:true}).bundle {debug:options.debug},(err,src) ->
-        if err then console.log "[piping-browser]".bold.yellow,"Error:",err
-        else
-          if options.minify
-            uglify src,path.resolve(basedir,o)#,convertSourceMap.fromSource(src).toObject()
-          else 
-            fs.writeFileSync path.resolve(basedir,o),src
-          console.log "[piping-browser]".bold.yellow,"Built in",Date.now()-start,"ms"
+    try
+      browserify().transform((file) ->
+          watcher.add file
+          for ext,func of options.build
+            if RegExp("\.#{ext}$").test file
+              data = ""
+              write = (buf) -> data += buf
+              end = -> 
+                @queue func(file,data)
+                @queue null
+              return through write, end
+          return through()
+        ).require(i,{entry:true}).bundle {debug:options.debug},(err,src) ->
+          if err then console.log "[piping-browser]".bold.yellow,"Error:",err
+          else
+            if options.minify
+              uglify src,o#,convertSourceMap.fromSource(src).toObject()
+            else 
+              fs.writeFileSync o,src
+            console.log "[piping-browser]".bold.yellow,"Built in",Date.now()-start,"ms"
+    catch e
+      console.log "[piping-browser]".bold.yellow,"Failed to build",path.relative(process.cwd(),i),e
 
   uglify = (files,output,inputmap) ->
     toplevel = null
@@ -97,11 +102,13 @@ module.exports = (ops,out) ->
 
 
   watcher.on "change", (file) ->
+    unless options.watch then return
     console.log "[piping-browser]".bold.yellow,"File",path.relative(process.cwd(),file),"has changed, rebuilding"
-    if options.watch then bundle options.main, options.out
+    bundle main, out
 
   if options.vendor and options.vendor.files.length and options.vendor.out and options.vendor.path
     files = []
+    vendorOut = path.resolve basedir,options.vendor.out
     for file in options.vendor.files
       files.push path.resolve basedir,options.vendor.path,file
     vendor = chokidar.watch files,
@@ -109,21 +116,22 @@ module.exports = (ops,out) ->
       ignoreInitial: true
       persistent: true
 
-    vendorBuild = (out) ->
+    vendorBuild = (files,out) ->
       start = Date.now()
       if options.minify
-        uglify files, path.resolve(basedir,out)
+        uglify files, out
       else
         code = ";"
         for file in files
           code += fs.readFileSync(file,"utf8") + ";\n"
-        fs.writeFileSync path.resolve(basedir,out),code
+        fs.writeFileSync out,code
       console.log "[piping-browser]".bold.yellow,"Vendor built in",Date.now()-start,"ms"
 
     vendor.on "change", (file) ->
+      unless options.watch then return 
       console.log "[piping-browser]".bold.yellow,"File",path.relative(process.cwd(),file),"has changed, rebuilding vendor"
-      if options.watch then vendorBuild options.vendor.out
-    vendorBuild options.vendor.out
+      vendorBuild files,vendorOut
+    vendorBuild files,vendorOut
 
-  bundle options.main, options.out
+  bundle main, out
 
